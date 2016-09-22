@@ -1,67 +1,36 @@
-#include <stdio.h>
 #include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
-
+#include <string.h>
 
 int main()
 {
-    pid_t chpid;
-    char name[] = "aaa.fifo";
-    char str[] = "Hello!";
-    char restr[7];
-    size_t size;
-    int fd;
-
-
-    if (mknod(name, S_IFIFO|0666, 0) < 0 && errno != EEXIST)
+    struct mystr
     {
-        printf("Can't create fifo\n");
+        double a;
+        char str[20];
+    }* pstr;
+
+    key_t key;
+    int shmid;
+    key = ftok("asm.s", 0);
+    if ((shmid = shmget(key, sizeof(struct mystr), 0666|IPC_CREAT)) < 0)
+    {
+        printf("Can't create shm\n");
+    }
+
+    if ((pstr = (struct mystr*) shmat(shmid, NULL, 0)) == NULL)
+    {
+        printf("Can't at to shm");
         exit(-1);
     }
 
-    //chpid = fork();
-    /*
-    if (chpid < 0)
-    {
-        printf("Error fork");
-        exit(-1);
-    }
-     */
-
-    //if (chpid > 0)
-    {
-        if ((fd = open(name, O_WRONLY)) < 0)
-        {
-            printf("Can't write\n");
-            exit(-1);
-
-        }
-
-        size = write(fd, str, 7);
-
-        if (size != 7)
-            printf("Can't write 7");
-
-        printf("Parent has wrote str in file\n");
-
-    }
-    //else
-    /*{
-        if ((fd = open(name, O_RDONLY)) < 0)
-        {
-            printf("Can't open file fifo\n");
-            exit(-1);
-        }
-
-        size = read(fd, restr, 7);
-        printf("Child has read restr: <%s>\n", restr);
-
-    }*/
-
-
+    pstr->a = 5.95;
+    strcpy(pstr->str, "Hello!");
+    shmdt(pstr);
+    printf("Process 1 finished\n");
     return 0;
 }
