@@ -15,18 +15,18 @@ int main() {
     size_t size;
     int fd;
 
-    if (mknod(name, S_IFIFO | 0666, 0) < 0 && errno != EEXIST) {
+    if (mknod(name, S_IFIFO | 0666, 0) < 0 && errno != EEXIST) { //Инициализируем fifo
         printf("Can't create fifo\n");
         exit(-1);
     }
 
 
-    if ((fd = open(name, O_RDONLY)) < 0)
+    if ((fd = open(name, O_RDONLY)) < 0)        //Открываем fifo
     {
         printf("Can't open file fifo\n");
         exit(-1);
     }
 
-    size = read(fd, restr, 7);
+    size = read(fd, restr, 7);                  //Считываем fifo
     printf("Child has read restr: <%s>\n", restr);
 }
